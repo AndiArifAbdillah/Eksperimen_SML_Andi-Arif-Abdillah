@@ -1,0 +1,45 @@
+name: Data Preprocessing Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.7'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas numpy scikit-learn matplotlib
+    
+    - name: Run automated preprocessing
+      run: |
+        cd preprocessing
+        python automate_Andi-Arif-Abdillah.py --output ../preprocessed_data.csv
+    
+    - name: Upload preprocessed data
+      uses: actions/upload-artifact@v3
+      with:
+        name: preprocessed-dataset
+        path: preprocessed_data.csv
+        
+    - name: Commit processed data
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add preprocessed_data.csv
+        git commit -m "Update preprocessed data" || echo "No changes to commit"
+        git push
